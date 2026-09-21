@@ -3,6 +3,7 @@ from time import sleep
 from air_sensor import AirSensor
 from light_sensor import LightSensor
 import mimetypes
+import textwrap
 import json
 import os
 
@@ -51,6 +52,31 @@ class Server(BaseHTTPRequestHandler):
     def do_GET(self):
         if self.path == "/":
             self.serveStatic()
+
+        if self.path == "/metrics":
+            air = air_sensor.readAir()
+            light = light_sensor.readLight()
+            response = textwrap.dedent(f"""
+                # HELP sensor_light measured light itensity in lux\n\
+                # TYPE sensor_light gauge\n\
+                sensor_light {light}\n\
+                # HELP sensor_air_temperature measured temperature in celcius\n\
+                # TYPE sensor_air_temperature gauge\n\
+                sensor_air_temperature {air.temperature}\n\
+                # HELP sensor_air_humidity measured humidity in percent\n\
+                # TYPE sensor_air_humidity gauge\n\
+                sensor_air_humidity {air.humidity}
+            """)
+
+            self.send_response(200)
+            self.send_header("Access-Control-Allow-Origin", "*")
+            self.send_header("Access-Control-Allow-Methods", "*")
+            self.send_header("Access-Control-Allow-Headers", "*")
+            self.send_header("Vary", "Origin")
+            self.send_header("Content-type", "text/plain")
+            self.end_headers()
+
+            self.wfile.write(response.encode())
 
         if self.path == "/api/air":
             air = air_sensor.readAir()
