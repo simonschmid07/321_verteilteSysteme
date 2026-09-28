@@ -1,13 +1,11 @@
 services:
-  airsensor:
-    build: .
+  webserver:
+    build:
+      context: .
+      dockerfile: lgpio.Dockerfile
     privileged: true
     command: ['python', '-u', 'main.py']
     volumes:
-      - ./air_sensor.py:/usr/src/app/air_sensor.py
-      - ./touch_sensor.py:/usr/src/app/touch_sensor.py
-      - ./light_sensor.py:/usr/src/app/light_sensor.py
-      - ./index.html:/usr/src/app/index.html
-      - ./main.py:/usr/src/app/main.py
+      - .:/usr/src/app/
     ports:
       - 8080:8080
