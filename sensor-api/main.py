@@ -20,19 +20,26 @@ touch_sensor = TouchSensor(11)
 host = "0.0.0.0"
 port = 8080
 
+touch_counter = 0
+
 
 def on_connect(client, userdata, flags, reason_code, properites):
     print(f"Connected to MQTT Broker with result {reason_code}")
+    mqtt_client.subscribe("mondaymorning/touch_counter", qos=2)
 
 
 def on_message(client, userdata, msg: object):
     print(msg.topic + " " + str(msg.payload))
+    if msg.topic == "mondaymorning/touch_counter":
+        global touch_counter
+        touch_counter = int(msg.payload)
+        print("got touch_counter state:", touch_counter)
 
 
 mqtt_client = mqtt.Client(mqtt.CallbackAPIVersion.VERSION2)
 mqtt_client.on_connect = on_connect
 mqtt_client.on_message = on_message
-mqtt_client.connect("10.5.61.199", 1883, 60)
+mqtt_client.connect("172.17.0.1", 1883, 60)
 
 sleep(1)
 
@@ -127,6 +134,17 @@ class Server(BaseHTTPRequestHandler):
                 }
             )
 
+        if self.path == "/api/touch-counter":
+            global touch_counter
+            self.sendJSON(
+                {
+                    "status": "ok",
+                    "data": {
+                        "touch_counter": touch_counter,
+                    },
+                }
+            )
+
 
 def read_distance_sensor(delay):
     while True:
@@ -138,6 +156,13 @@ def read_distance_sensor(delay):
 def handle_touch(is_touched):
     if is_touched:
         print("touched")
+        mqtt_client.publish("mondaymorning/sensors/touch", "touched", qos=2)
+
+        global touch_counter
+        touch_counter += 1
+        mqtt_client.publish(
+            "mondaymorning/touch_counter", touch_counter, qos=2, retain=True
+        )
 
 
 def main():
