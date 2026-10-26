@@ -3,7 +3,10 @@
 ## Setup
 
 ```bash
-cd sensor-api
+cd mosquitto
+sudo docker compose up -d
+
+cd ../sensor-api
 sudo docker compose up -d
 
 cd ../system-monitoring
