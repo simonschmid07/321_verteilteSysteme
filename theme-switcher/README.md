@@ -6,9 +6,9 @@
 cd sensor-api
 sudo docker compose up -d
 
-cd system-monitoring
+cd ../system-monitoring
 sudo docker compose up -d
 
-cd theme-switcher
+cd ../theme-switcher
 sudo docker compose up -d
 ```
